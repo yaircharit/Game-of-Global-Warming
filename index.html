@@ -33,14 +33,14 @@
             this.envColor(env)
             this.tempLabel.innerHTML = `Temp: ${temp}`
             this.polLabel.innerHTML = `Pol: ${pol}`
-            this.heightLabel.innerHTML = `Height: ${height}`
+            // this.heightLabel.innerHTML = `Height: ${height}`
         }
 
         update(gametile){
             this.envColor(gametile.env)
             this.tempLabel.innerHTML = `Temp: ${gametile.temp.toFixed(2)}`
             this.polLabel.innerHTML = `Pol: ${gametile.polution.toFixed(2)}`
-            this.heightLabel.innerHTML = `Height: ${gametile.height}`
+            // this.heightLabel.innerHTML = `Height: ${gametile.height}`
         }
 
         envColor(env){
@@ -50,12 +50,15 @@
 
     class GameTile{
         constructor(loc = [0,0], env = 'water', temp = -999, pol = -999, height= -999, tileView = undefined){
-
             this.location = loc;
             this.env = env;
             this.temp = (temp != -999)? temp : this.envTemp
             this.polution = (pol != -999)? pol : this.envPolution
             this.height = (height != -999)? height : 0;
+            this.wind_str = 0
+            this.wind_dir = -1
+            this.rain = 0
+            this.clouds = 0
             this.tile = (tileView != undefined)? tileView : new GameTileView();
 
         }
@@ -93,9 +96,10 @@
                 pol_sum += neighborhood[obj].polution
             }
             
-            cpy.polution = pol_sum / neighborhood.length
-            if (cpy.env == 'city')
-                cpy.polution += 10
+            cpy.polution = (pol_sum / neighborhood.length) +((cpy.env == 'city')? 30 :-1)
+            
+            if (cpy.polution < 0)
+                cpy.polution = 0
             cpy.temp = temp_sum / neighborhood.length + cpy.polution/10
 
             if (cpy.temp > 100){
