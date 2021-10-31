@@ -2,8 +2,8 @@
 :root {
     --tile-width: 100;
     --tile-margin: 2;
-    --board-size: 51;
-    --board-width: 5304; /*  = (tileWidth+(tileMargin*2))*boardSize  */
+    --board-size: 25;
+    --board-width: 2600; /*  = (tileWidth+(tileMargin*2))*boardSize  */
 
     --default-color: lightgray;
     --glacier-color: lightblue;

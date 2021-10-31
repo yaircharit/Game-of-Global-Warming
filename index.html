@@ -34,6 +34,9 @@
         function sleep(milliseconds) {
             return new Promise(resolve => setTimeout(resolve, milliseconds))
         }
+        function rand(num){
+            return Math.round(Math.random()*num)
+        }
         function onStopClick() {
             if (gb.running) {
                 gb.running = false;
@@ -52,14 +55,18 @@
                 this.polLabel = document.createElement('label')
                 this.panel.appendChild(this.polLabel)
 
-                this.heightLabel = document.createElement('label')
-                this.panel.appendChild(this.heightLabel)
+                this.windLabel = document.createElement('label')
+                this.panel.appendChild(this.windLabel)
+
+                this.cloudsLabel = document.createElement('label')
+                this.panel.appendChild(this.cloudsLabel)
             }
 
             update(env = 'water', temp = 0, pol = 0, height = 0) {
                 this.envColor(env)
                 this.tempLabel.innerHTML = `Temp: ${temp}`
                 this.polLabel.innerHTML = `Pol: ${pol}`
+                this.windLabel.innerHTML = `W: ERROR`
                 // this.heightLabel.innerHTML = `Height: ${height}`
             }
 
@@ -67,6 +74,8 @@
                 this.envColor(gametile.env)
                 this.tempLabel.innerHTML = `Temp: ${gametile.temp.toFixed(2)}`
                 this.polLabel.innerHTML = `Pol: ${gametile.polution.toFixed(2)}`
+                this.windLabel.innerHTML = `W: ${gametile.wind_str}, ->${gametile.wind_dir}`
+                this.cloudsLabel.innerHTML = `C: ${gametile.clouds}, ${gametile.rain}`
                 // this.heightLabel.innerHTML = `Height: ${gametile.height}`
             }
 
@@ -84,10 +93,10 @@
                 if (this.polution < 0)
                     this.polution = 0;
                 this.height = (height != -999) ? height : 0;
-                this.wind_str = 0
-                this.wind_dir = -1
-                this.rain = 0
-                this.clouds = 0
+                this.wind_str = rand(4)
+                this.wind_dir = (this.wind_str > 0)? rand(8):-1
+                this.clouds = rand(3)
+                this.rain = rand(this.clouds)
                 this.tile = (tileView != undefined) ? tileView : new GameTileView();
 
             }
@@ -127,33 +136,52 @@
 
                 let temp_sum = 0;
                 let pol_sum = 0;
+                let was_windy = false;
 
-                for (let obj in neighborhood) {
-                    temp_sum += neighborhood[obj].temp
-                    pol_sum += neighborhood[obj].polution
+                for (let i in neighborhood) {
+                    let obj = neighborhood[i]
+                    temp_sum += obj.temp
+                    pol_sum += obj.polution
+                    if (obj.wind_str > 0 && 8-obj.wind_dir == i && cpy.wind_dir != i){
+                        temp_sum += obj.wind_str*0.1*obj.temp
+                        pol_sum += obj.wind_str*0.1*obj.polution
+                        cpy.wind_str = Math.min(4,Math.max(obj.wind_str +rand(2)-1,0))
+                        cpy.wind_dir = rand(8)
+                        cpy.clouds = Math.min(3,Math.max(obj.clouds +rand(2)-1,0))
+                        cpy.rain = Math.min(3,Math.max(obj.rain +rand(2)-1,0))
+                        was_windy = true
+                    }
                 }
 
-                cpy.polution = (pol_sum / neighborhood.length) + cpy.envPolution
-
+                cpy.polution = (pol_sum / neighborhood.length) + cpy.envPolution - cpy.rain
+                
                 if (cpy.polution < 0)
-                    cpy.polution = 0
-                cpy.temp = temp_sum / neighborhood.length + ((cpy.polution == 0 && cpy.env != 'city') ? -3 : cpy.polution / 10)
+                    cpy.polution = 0 //-(cpy.rain +cpy.wind_str)/2
+                cpy.temp = temp_sum / neighborhood.length  + ((cpy.polution == 0 && cpy.env != 'city') ? -3 : cpy.polution / 3)
 
-                if (cpy.temp > 100) {
+                if (!was_windy){
+                    cpy.wind_str = Math.min(4,Math.max(cpy.wind_str +rand(2)-1,0))
+                    cpy.clouds = Math.min(3,Math.max(cpy.clouds +rand(2)-1,0))
+                    cpy.rain = Math.min(3,Math.max(cpy.rain +rand(2)-1,0))
+                }
+
+                if (cpy.temp <= -100)
+                    cpy.temp = -100
+                else if (cpy.temp > 100) {
                     cpy.env = 'scorched'
-                } else if (cpy.temp <= 0) {
+                } else if (cpy.temp <= -10) {
                     cpy.env = 'glacier'
                 } else if (cpy.env == 'glacier' && cpy.temp >= 0) {
                     cpy.env = 'water'
                 } else if ((cpy.env == 'forest' && (cpy.temp >= 55 || cpy.polution >= 20)) || (cpy.env == 'scorched' && cpy.temp <= 60))
                     cpy.env = 'ground'
-                else if (cpy.env == 'ground' && cpy.temp <= 42 && cpy.polution == 0)
+                else if (cpy.env == 'ground' && cpy.rain > 0 && cpy.temp <= 42 && cpy.polution == 0)
                     cpy.env = 'forest'
                 else if (neighborhood.filter((elem) => {
-                    return !(elem.env == 'forest' && elem.temp <= 40 && elem.polution < 1)
+                    return !(elem.env == 'forest' && elem.temp < 40 && elem.polution < 1)
                 }).length == 0) {
                     cpy.env = 'city'
-                }
+                }else 
 
                 cpy.tile.update(cpy)
                 return cpy
@@ -222,7 +250,7 @@
 
         }
 
-        let gb = new Gameboard(51);
+        let gb = new Gameboard(25);
     </script>
 
 </body>
