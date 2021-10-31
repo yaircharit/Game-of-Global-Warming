@@ -7,35 +7,80 @@
 <div id='gameboard'></div>
 <script>
     var elem = document.getElementById('gameboard');
-    var temp
+
+    class GameTileView{
+        constructor(){
+            this.panel = document.createElement('div');
+            this.panel.classList.add('game-tile')
+            
+            this.tempLabel = document.createElement('label')
+            this.panel.appendChild(this.tempLabel)
+
+            this.polLabel = document.createElement('label')
+            this.panel.appendChild(this.polLabel)
+
+            this.heightLabel = document.createElement('label')
+            this.panel.appendChild(this.heightLabel)
+        }
+
+        update(env = 'water', temp = 0, pol = 0, height = 0){
+            this.envColor(env)
+            this.tempLabel.innerHTML = `Temp: ${temp}`
+            this.polLabel.innerHTML = `Pol: ${pol}`
+            this.heightLabel.innerHTML = `Height: ${height}`
+        }
+
+        envColor(env){
+            this.panel.style.backgroundColor =  `var(--${env}-color)`;
+        }
+    }
+
     class GameTile{
         constructor(loc = [0,0], env = 'water'){
             this.location = [...loc];
             this.env = env;
-            this.tile = document.createElement('div');
-            this.tile.classList.add('game-tile')
-            this.tile.classList.add(this.envClass)
-            let temp = document.createElement('label')
-            temp.innerHTML = 'Hi'
-            this.tile.appendChild(temp)
+            this.temp = this.envTemp
+            this.polution = this.envPolution
+            this.height = 0;
+            this.tile = new GameTileView()
+            // this.tile.classList.add(this.envClass)
+        }
+        
+        get envPolution(){
+            return (this.env == 'city')? 30 : 0;
+        } 
+
+        get envTemp(){
+            switch (this.env){
+                case 'water':
+                    return 20
+                case 'glacier':
+                    return -40
+                case 'ground':
+                case 'forest':
+                case 'city':
+                    return 25
+            }
         }
 
-        get envClass(){
-            return `env-${this.env}`
+        update(){
+            this.tile.update(this.env, this.temp, this.polution, this.height)
         }
     }
     class Gameboard {
-        constructor(size = 10){
+        constructor(size = 11){
             this.size = size;
             this.board = new Array(size)
             let env;
+            let r;
             for (let i = 0; i < size; i++){
                 this.board[i] = new Array(size)
                 for (let j = 0; j < size; j++){
-                    env = (i%5 == 0 || j%5 ==0)? 'ground' : 'water'
-                    console.log('env=',env)
+                    r = Math.random()*100
+                    env = (i > 1 && i < this.size-2 && j > 1 && j < this.size-2)? ((r > 93)? 'city' : (r > 50)? 'forest': 'ground') : 'water'
                     this.board[i][j] = new GameTile([i,j],env);
-                    elem.appendChild(this.board[i][j].tile)
+                    this.board[i][j].update()
+                    elem.appendChild(this.board[i][j].tile.panel)
                 }
             }
         }

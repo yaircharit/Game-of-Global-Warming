@@ -20,16 +20,12 @@
 }
 
 .game-tile {
+    display: flex; 
+    flex-direction: column;
+    font-size: large;
+    /* flex-wrap: wrap; */
     width:              var(--tile-width);
     height:             var(--tile-width);
     background-color:   var(--default-color);
     margin:             var(--tile-margin)
-}
-
-.game-tile.env-water{
-    background-color:   var(--water-color);
-}
-
-.game-tile.env-ground{
-    background-color:   var(--ground-color);
 }
