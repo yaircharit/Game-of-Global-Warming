@@ -54,6 +54,8 @@
             this.env = env;
             this.temp = (temp != -999)? temp : this.envTemp
             this.polution = (pol != -999)? pol : this.envPolution
+            if (this.polution < 0)
+                this.polution = 0;
             this.height = (height != -999)? height : 0;
             this.wind_str = 0
             this.wind_dir = -1
@@ -64,7 +66,16 @@
         }
         
         get envPolution(){
-            return (this.env == 'city')? 30 : 0;
+            switch (this.env){
+                case 'city':
+                    return 30;
+                case 'forest':
+                    return 1;
+                case 'scorched':
+                    return -10;
+                default:
+                    return -1;
+            }
         } 
 
         get envTemp(){
@@ -81,8 +92,7 @@
         }
 
         clone(){
-            var x = new GameTile(this.location, this.env, this.temp, this.polution, this.height, this.tile)
-            return x
+            return new GameTile(this.location, this.env, this.temp, this.polution, this.height, this.tile)
         }
 
         get_next_gen(neighborhood){
@@ -96,20 +106,27 @@
                 pol_sum += neighborhood[obj].polution
             }
             
-            cpy.polution = (pol_sum / neighborhood.length) +((cpy.env == 'city')? 30 :-1)
+            cpy.polution = (pol_sum / neighborhood.length) +cpy.envPolution
             
             if (cpy.polution < 0)
                 cpy.polution = 0
-            cpy.temp = temp_sum / neighborhood.length + cpy.polution/10
+            cpy.temp = temp_sum / neighborhood.length + ((cpy.polution == 0 && cpy.env != 'city')? -3 :cpy.polution/10)
 
             if (cpy.temp > 100){
                 cpy.env = 'scorched'
-            }else if (cpy.env == 'water' && cpy.temp <= 0){
+            }else if (cpy.temp <= 0){
                 cpy.env = 'glacier'
             }else if (cpy.env == 'glacier' && cpy.temp >= 0){
                 cpy.env = 'water'
-            }else if (cpy.env == 'forest' && cpy.temp >=55)
+            }else if ((cpy.env == 'forest' && (cpy.temp >=55 || cpy.polution >= 20)) || (cpy.env == 'scorched' && cpy.temp <= 60))
                 cpy.env = 'ground'
+            else if (cpy.env == 'ground' && cpy.temp <= 42 && cpy.polution == 0)
+                cpy.env = 'forest'
+            else if (neighborhood.filter((elem)=>{
+                return !(elem.env == 'forest' && elem.temp <= 40 && elem.polution <= 1)
+            }).length ==0){
+                cpy.env = 'city'
+            }
 
             
 
@@ -162,7 +179,7 @@
         }
     }
     
-    let gb = new Gameboard(11);
+    let gb = new Gameboard(51);
 </script>
     
 </body>
