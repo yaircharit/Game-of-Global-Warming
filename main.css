@@ -14,8 +14,13 @@
     --scorched-color: gray;
 }
 
+body{
+    background-color: rgb(105, 82, 32);
+    
+}
+
 #gameboard {
-    display: flex; 
+    display: inline-flex; 
     flex-wrap: wrap;
     width: var(--board-width);
 }
@@ -31,12 +36,32 @@
     margin:             var(--tile-margin)
 }
 
+#time-label{
+    font-size: 5em;
+}
+
+#buttons{
+    display: inline-flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    right: 0;
+    position: fixed;
+}
+
 button{
-    font-size: x-large;
-    background-color: rgb(66, 146, 66);
+    font-size: 5em;
     color: white;
     border: none;
     border-radius: 25px;
-    margin: 2px;
-    padding: 10px;
+    padding: 1em;
+    margin: 0.5em;
+    
+}
+
+button#button-step, button#button-run{
+    background-color: rgb(66, 146, 66);
+}
+
+button#button-stop{
+    background-color: maroon;
 }
