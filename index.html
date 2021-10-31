@@ -19,7 +19,7 @@
 
     <script>
         const water_border = 3
-        const city_precentage = 94
+        const city_precentage = 98
         const forest_precentage = 30
         const glacier_precentage = 90
 
@@ -89,7 +89,7 @@
                 this.location = loc;
                 this.env = env;
                 this.temp = (temp != -999) ? temp : this.envTemp
-                this.polution = (pol != -999) ? pol : this.envPolution
+                this.polution = (pol != -999) ? pol : (this.env == 'city')? 30:0
                 if (this.polution < 0)
                     this.polution = 0;
                 this.height = (height != -999) ? height : 0;
@@ -104,13 +104,13 @@
             get envPolution() {
                 switch (this.env) {
                     case 'city':
-                        return 30;
+                        return 10;
                     case 'forest':
-                        return 1;
+                        return 2;
                     case 'scorched':
-                        return -10;
+                        return -7;
                     default:
-                        return -1;
+                        return -3;
                 }
             }
 
@@ -153,11 +153,11 @@
                     }
                 }
 
-                cpy.polution = (pol_sum / neighborhood.length) + cpy.envPolution - cpy.rain
+                cpy.polution = (pol_sum / neighborhood.length) + cpy.envPolution
                 
                 if (cpy.polution < 0)
                     cpy.polution = 0 //-(cpy.rain +cpy.wind_str)/2
-                cpy.temp = temp_sum / neighborhood.length  + ((cpy.polution == 0 && cpy.env != 'city') ? -3 : cpy.polution / 3)
+                cpy.temp = temp_sum / neighborhood.length-(cpy.rain +cpy.wind_str+cpy.clouds)/3  + ((cpy.polution == 0 && cpy.env != 'city') ? -3 : cpy.polution / 3) +((cpy.env == 'glacier')? 2: 0)
 
                 if (!was_windy){
                     cpy.wind_str = Math.min(4,Math.max(cpy.wind_str +rand(2)-1,0))
@@ -165,23 +165,22 @@
                     cpy.rain = Math.min(3,Math.max(cpy.rain +rand(2)-1,0))
                 }
 
-                if (cpy.temp <= -100)
-                    cpy.temp = -100
-                else if (cpy.temp > 100) {
+                cpy.temp = Math.max(-100, cpy.temp)
+                if (cpy.temp > 100) {
                     cpy.env = 'scorched'
                 } else if (cpy.temp <= -10) {
                     cpy.env = 'glacier'
                 } else if (cpy.env == 'glacier' && cpy.temp >= 0) {
                     cpy.env = 'water'
-                } else if ((cpy.env == 'forest' && (cpy.temp >= 55 || cpy.polution >= 20)) || (cpy.env == 'scorched' && cpy.temp <= 60))
+                } else if ((cpy.env == 'forest' && (cpy.temp >= 65 || cpy.polution >= 100)) || (cpy.env == 'scorched' && cpy.temp <= 60))
                     cpy.env = 'ground'
-                else if (cpy.env == 'ground' && cpy.rain > 0 && cpy.temp <= 42 && cpy.polution == 0)
+                else if (cpy.env == 'ground'&& cpy.temp <= 40 && cpy.polution < 1)
                     cpy.env = 'forest'
                 else if (neighborhood.filter((elem) => {
-                    return !(elem.env == 'forest' && elem.temp < 40 && elem.polution < 1)
+                    return !(elem.env == 'forest' && elem.temp < 40 && elem.polution <= 1)
                 }).length == 0) {
                     cpy.env = 'city'
-                }else 
+                }
 
                 cpy.tile.update(cpy)
                 return cpy
@@ -199,8 +198,8 @@
                 for (let i = 0; i < size; i++) {
                     this.board[i] = new Array(size)
                     for (let j = 0; j < size; j++) {
-                        r = Math.random() * 100
-                        env = (i > water_border-1 && i < this.size - water_border && j > water_border-1 && j < this.size - water_border) ? ((r > city_precentage) ? 'city' : (r > forest_precentage) ? 'forest' : 'ground') : ((r > glacier_precentage) ? 'glacier' : 'water')
+                        r = rand(100)
+                        env = ((i > water_border-1 && i < size - water_border && j > water_border-1 && j < size - water_border) && !(i< size/2+water_border && i > size/2-water_border && j< size/2+water_border && j > size/2-water_border)) ? ((r > city_precentage) ? 'city' : (r > forest_precentage) ? 'forest' : 'ground') : ((r > glacier_precentage) ? 'glacier' : 'water')
                         this.board[i][j] = new GameTile([i, j], env);
                         this.board[i][j].tile.update(this.board[i][j])
                         elem.appendChild(this.board[i][j].tile.panel)
@@ -231,7 +230,14 @@
                         res[i][j] = this.board[i][j].get_next_gen(this.getNeighborhood([i, j]))
                     }
                 }
-
+                for (let i = 0; i < this.size; i++) {
+                    
+                    for (let j = 0; j < this.size; j++) {
+                        delete this.board[i][j]
+                    }
+                    delete this.board[i]
+                }
+                delete this.board
                 this.board = res;
                 this.time_label.innerHTML = `Time: ${++this.time}`
             }
@@ -242,7 +248,9 @@
 
                     while (this.running) {
                         this.update()
+                        console.log(this.board)
                         await sleep(750)
+                        
                     }
                     stopB.style.backgroundColor = 'maroon'
                 }
@@ -250,7 +258,7 @@
 
         }
 
-        let gb = new Gameboard(25);
+        let gb = new Gameboard(51);
     </script>
 
 </body>
