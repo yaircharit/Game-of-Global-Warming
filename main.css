@@ -10,7 +10,8 @@
     --water-color: rgb(86, 155, 179);
     --ground-color: rgb(168, 137, 69);
     --forest-color: rgb(36, 121, 36);
-    --city-color: purple;
+    --city-color: rgb(126, 61, 126);
+    --scorched-color: gray;
 }
 
 #gameboard {
@@ -28,4 +29,14 @@
     height:             var(--tile-width);
     background-color:   var(--default-color);
     margin:             var(--tile-margin)
+}
+
+button{
+    font-size: x-large;
+    background-color: rgb(66, 146, 66);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    margin: 2px;
+    padding: 10px;
 }

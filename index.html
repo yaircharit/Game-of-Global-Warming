@@ -4,10 +4,16 @@
 </head>
 
 <body>
+    <div id='gametable'>
 <div id='gameboard'></div>
+<button onclick="gb.update()">1 Step</button>
+</div>
 <script>
     var elem = document.getElementById('gameboard');
 
+    function mod(num1, num2){
+        return (num1 + num2) % num2;
+    }
     class GameTileView{
         constructor(){
             this.panel = document.createElement('div');
@@ -30,20 +36,28 @@
             this.heightLabel.innerHTML = `Height: ${height}`
         }
 
+        update(gametile){
+            this.envColor(gametile.env)
+            this.tempLabel.innerHTML = `Temp: ${gametile.temp.toFixed(2)}`
+            this.polLabel.innerHTML = `Pol: ${gametile.polution.toFixed(2)}`
+            this.heightLabel.innerHTML = `Height: ${gametile.height}`
+        }
+
         envColor(env){
             this.panel.style.backgroundColor =  `var(--${env}-color)`;
         }
     }
 
     class GameTile{
-        constructor(loc = [0,0], env = 'water'){
-            this.location = [...loc];
+        constructor(loc = [0,0], env = 'water', temp = -999, pol = -999, height= -999, tileView = undefined){
+
+            this.location = loc;
             this.env = env;
-            this.temp = this.envTemp
-            this.polution = this.envPolution
-            this.height = 0;
-            this.tile = new GameTileView()
-            // this.tile.classList.add(this.envClass)
+            this.temp = (temp != -999)? temp : this.envTemp
+            this.polution = (pol != -999)? pol : this.envPolution
+            this.height = (height != -999)? height : 0;
+            this.tile = (tileView != undefined)? tileView : new GameTileView();
+
         }
         
         get envPolution(){
@@ -63,8 +77,40 @@
             }
         }
 
-        update(){
-            this.tile.update(this.env, this.temp, this.polution, this.height)
+        clone(){
+            var x = new GameTile(this.location, this.env, this.temp, this.polution, this.height, this.tile)
+            return x
+        }
+
+        get_next_gen(neighborhood){
+            var cpy  = this.clone()
+            
+            let temp_sum = 0;
+            let pol_sum = 0;
+
+            for (let obj in neighborhood){
+                temp_sum += neighborhood[obj].temp
+                pol_sum += neighborhood[obj].polution
+            }
+            
+            cpy.polution = pol_sum / neighborhood.length
+            if (cpy.env == 'city')
+                cpy.polution += 10
+            cpy.temp = temp_sum / neighborhood.length + cpy.polution/10
+
+            if (cpy.temp > 100){
+                cpy.env = 'scorched'
+            }else if (cpy.env == 'water' && cpy.temp <= 0){
+                cpy.env = 'glacier'
+            }else if (cpy.env == 'glacier' && cpy.temp >= 0){
+                cpy.env = 'water'
+            }else if (cpy.env == 'forest' && cpy.temp >=55)
+                cpy.env = 'ground'
+
+            
+
+            cpy.tile.update(cpy)
+            return cpy
         }
     }
     class Gameboard {
@@ -77,12 +123,38 @@
                 this.board[i] = new Array(size)
                 for (let j = 0; j < size; j++){
                     r = Math.random()*100
-                    env = (i > 1 && i < this.size-2 && j > 1 && j < this.size-2)? ((r > 93)? 'city' : (r > 50)? 'forest': 'ground') : 'water'
+                    env = (i > 1 && i < this.size-2 && j > 1 && j < this.size-2)? ((r > 93)? 'city' : (r > 50)? 'forest': 'ground') : ((r > 90)? 'glacier': 'water')
                     this.board[i][j] = new GameTile([i,j],env);
-                    this.board[i][j].update()
+                    this.board[i][j].tile.update(this.board[i][j])
                     elem.appendChild(this.board[i][j].tile.panel)
                 }
             }
+        }
+
+        getNeighborhood(loc = [0,0]){
+            var res = []
+
+            for (let i = loc[0]-1; i < loc[0]+2; i++){
+                for (let j = loc[1]-1; j < loc[1]+2; j++){
+                    let temp = this.board[mod(i,this.size)][mod(j,this.size)]
+                    res.push(temp)
+                }
+            }
+            
+            return res
+        }
+
+        update(){
+            var res = new Array(this.size);
+
+            for (let i = 0; i < this.size; i++){
+                res[i] = new Array(this.size)
+                for (let j = 0; j < this.size; j++){
+                    res[i][j] = this.board[i][j].get_next_gen(this.getNeighborhood([i,j]))
+                }
+            }
+
+            this.board = res;
         }
     }
     
