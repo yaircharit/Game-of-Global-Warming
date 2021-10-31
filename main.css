@@ -1,0 +1,35 @@
+
+:root {
+    --tile-width: 100;
+    --tile-margin: 2;
+    --board-size: 11;
+    --board-width: 1144; /*  = (tileWidth+(tileMargin*2))*boardSize  */
+
+    --default-color: lightgray;
+    --glacier-color: lightblue;
+    --water-color: rgb(86, 155, 179);
+    --ground-color: rgb(168, 137, 69);
+    --forest-color: rgb(36, 121, 36);
+    --city-color: purple;
+}
+
+#gameboard {
+    display: flex; 
+    flex-wrap: wrap;
+    width: var(--board-width);
+}
+
+.game-tile {
+    width:              var(--tile-width);
+    height:             var(--tile-width);
+    background-color:   var(--default-color);
+    margin:             var(--tile-margin)
+}
+
+.game-tile.env-water{
+    background-color:   var(--water-color);
+}
+
+.game-tile.env-ground{
+    background-color:   var(--ground-color);
+}

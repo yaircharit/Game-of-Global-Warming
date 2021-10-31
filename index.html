@@ -1,52 +1,47 @@
 <html>
 <head>
-
+    <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
-<div id='test' style="display: flex; flex-wrap: wrap; width: 1040px;"></div>
+<div id='gameboard'></div>
 <script>
+    var elem = document.getElementById('gameboard');
+    var temp
     class GameTile{
-        constructor(loc = [0,0]){
+        constructor(loc = [0,0], env = 'water'){
             this.location = [...loc];
-            this.env = 'WATER';
+            this.env = env;
             this.tile = document.createElement('div');
-            this.tile.style.backgroundColor = 'Maroon';
-            this.tile.style.height = '100px';
-            this.tile.style.width = '100px';
-            this.tile.style.margin = '2px'
+            this.tile.classList.add('game-tile')
+            this.tile.classList.add(this.envClass)
             let temp = document.createElement('label')
             temp.innerHTML = 'Hi'
             this.tile.appendChild(temp)
         }
+
+        get envClass(){
+            return `env-${this.env}`
+        }
     }
     class Gameboard {
-        
         constructor(size = 10){
             this.size = size;
             this.board = new Array(size)
+            let env;
             for (let i = 0; i < size; i++){
                 this.board[i] = new Array(size)
                 for (let j = 0; j < size; j++){
-                    this.board[i][j] = new GameTile([i,j]);
-                    
+                    env = (i%5 == 0 || j%5 ==0)? 'ground' : 'water'
+                    console.log('env=',env)
+                    this.board[i][j] = new GameTile([i,j],env);
+                    elem.appendChild(this.board[i][j].tile)
                 }
-                console.log(this.board[i])
             }
         }
     }
-    var elem = document.getElementById('test');
-    let gb = new Gameboard(10);
-
-    console.log(gb.board)
-    for (let i in gb.board){
     
-        let row = gb.board[i]
-        for (let j in row){
-            let cell = row[j]
-            elem.appendChild(cell.tile)
-        }
-    }
+    let gb = new Gameboard(11);
 </script>
     
 </body>
