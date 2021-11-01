@@ -89,7 +89,7 @@
                 this.location = loc;
                 this.env = env;
                 this.temp = (temp != -999) ? temp : this.envTemp
-                this.polution = (pol != -999) ? pol : (this.env == 'city')? 30:0
+                this.polution = (pol != -999) ? pol : (this.env == 'city')? 30: (this.env == 'forest')? 2 : 0
                 if (this.polution < 0)
                     this.polution = 0;
                 this.height = (height != -999) ? height : 0;
@@ -104,13 +104,13 @@
             get envPolution() {
                 switch (this.env) {
                     case 'city':
-                        return 10;
+                        return 20;
                     case 'forest':
-                        return 2;
+                        return 0.5;
                     case 'scorched':
                         return -7;
                     default:
-                        return -3;
+                        return -1;
                 }
             }
 
@@ -136,13 +136,16 @@
 
                 let temp_sum = 0;
                 let pol_sum = 0;
+                let items_count = 0;
                 let was_windy = false;
 
                 for (let i in neighborhood) {
                     let obj = neighborhood[i]
                     temp_sum += obj.temp
                     pol_sum += obj.polution
+                    items_count++
                     if (obj.wind_str > 0 && 8-obj.wind_dir == i && cpy.wind_dir != i){
+                        items_count += obj.wind_str*0.1
                         temp_sum += obj.wind_str*0.1*obj.temp
                         pol_sum += obj.wind_str*0.1*obj.polution
                         cpy.wind_str = Math.min(4,Math.max(obj.wind_str +rand(2)-1,0))
@@ -153,34 +156,40 @@
                     }
                 }
 
-                cpy.polution = (pol_sum / neighborhood.length) + cpy.envPolution
+                cpy.polution = (pol_sum / items_count) + cpy.envPolution
                 
                 if (cpy.polution < 0)
-                    cpy.polution = 0 //-(cpy.rain +cpy.wind_str)/2
-                cpy.temp = temp_sum / neighborhood.length-(cpy.rain +cpy.wind_str+cpy.clouds)/3  + ((cpy.polution == 0 && cpy.env != 'city') ? -3 : cpy.polution / 3) +((cpy.env == 'glacier')? 2: 0)
-
+                    cpy.polution = 0 
+                cpy.temp = (temp_sum / items_count) -(cpy.rain +cpy.wind_str+cpy.clouds)/6  + ((cpy.polution == 0 ) ? -1 : cpy.polution/8) //+((cpy.env == 'water')? 2: 0)
+                if (neighborhood.filter((elem) => {
+                    return (elem.env == 'glacier')
+                }).length == 9) {
+                    cpy.temp += 10
+                }
                 if (!was_windy){
                     cpy.wind_str = Math.min(4,Math.max(cpy.wind_str +rand(2)-1,0))
                     cpy.clouds = Math.min(3,Math.max(cpy.clouds +rand(2)-1,0))
                     cpy.rain = Math.min(3,Math.max(cpy.rain +rand(2)-1,0))
+                    cpy.wind_dir = rand(8)
                 }
 
-                cpy.temp = Math.max(-100, cpy.temp)
+                // cpy.temp = Math.max(-100, cpy.temp)
                 if (cpy.temp > 100) {
                     cpy.env = 'scorched'
                 } else if (cpy.temp <= -10) {
                     cpy.env = 'glacier'
-                } else if (cpy.env == 'glacier' && cpy.temp >= 0) {
+                } else if (cpy.env == 'glacier' && cpy.temp >= -20) {
                     cpy.env = 'water'
-                } else if ((cpy.env == 'forest' && (cpy.temp >= 65 || cpy.polution >= 100)) || (cpy.env == 'scorched' && cpy.temp <= 60))
+                } else if ((cpy.env == 'forest' && (cpy.temp >= 65 || cpy.polution >= 25)) || (cpy.env == 'scorched' && cpy.temp <= 60))
                     cpy.env = 'ground'
-                else if (cpy.env == 'ground'&& cpy.temp <= 40 && cpy.polution < 1)
+                else if (cpy.env == 'ground' && cpy.temp <= 45 && cpy.polution < 5)
                     cpy.env = 'forest'
                 else if (neighborhood.filter((elem) => {
-                    return !(elem.env == 'forest' && elem.temp < 40 && elem.polution <= 1)
-                }).length == 0) {
+                    return (elem.env == 'forest' )
+                }).length == 9 &&  cpy.temp < 42 && cpy.polution < 1) {
                     cpy.env = 'city'
                 }
+                
 
                 cpy.tile.update(cpy)
                 return cpy
@@ -249,7 +258,7 @@
                     while (this.running) {
                         this.update()
                         console.log(this.board)
-                        await sleep(750)
+                        await sleep(250)
                         
                     }
                     stopB.style.backgroundColor = 'maroon'
