@@ -104,11 +104,11 @@
             get envPolution() {
                 switch (this.env) {
                     case 'city':
-                        return 20;
+                        return 30;
                     case 'forest':
                         return 0.5;
-                    case 'scorched':
-                        return -7;
+                    // case 'scorched':
+                    //     return -5;
                     default:
                         return -1;
                 }
@@ -151,7 +151,7 @@
                         cpy.wind_str = Math.min(4,Math.max(obj.wind_str +rand(2)-1,0))
                         cpy.wind_dir = rand(8)
                         cpy.clouds = Math.min(3,Math.max(obj.clouds +rand(2)-1,0))
-                        cpy.rain = Math.min(3,Math.max(obj.rain +rand(2)-1,0))
+                        cpy.rain =  (cpy.clouds > 0)? Math.min(3,Math.max(obj.rain +rand(2)-1,0)): 0
                         was_windy = true
                     }
                 }
@@ -169,7 +169,8 @@
                 if (!was_windy){
                     cpy.wind_str = Math.min(4,Math.max(cpy.wind_str +rand(2)-1,0))
                     cpy.clouds = Math.min(3,Math.max(cpy.clouds +rand(2)-1,0))
-                    cpy.rain = Math.min(3,Math.max(cpy.rain +rand(2)-1,0))
+                    if (cpy.clouds > 0)
+                        cpy.rain = Math.min(3,Math.max(cpy.rain +rand(2)-1,0))
                     cpy.wind_dir = rand(8)
                 }
 
@@ -182,11 +183,11 @@
                     cpy.env = 'water'
                 } else if ((cpy.env == 'forest' && (cpy.temp >= 65 || cpy.polution >= 25)) || (cpy.env == 'scorched' && cpy.temp <= 60))
                     cpy.env = 'ground'
-                else if (cpy.env == 'ground' && cpy.temp <= 45 && cpy.polution < 5)
+                else if (cpy.env == 'ground' && cpy.temp <= 45 && cpy.polution < 1)
                     cpy.env = 'forest'
                 else if (neighborhood.filter((elem) => {
-                    return (elem.env == 'forest' )
-                }).length == 9 &&  cpy.temp < 42 && cpy.polution < 1) {
+                    return (elem.env == 'forest' && elem.polution < 1 && cpy.temp < 42 )
+                }).length == 9) {
                     cpy.env = 'city'
                 }
                 
