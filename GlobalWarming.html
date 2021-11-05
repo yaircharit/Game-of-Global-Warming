@@ -7,7 +7,7 @@
 
 <body>
     <div id='gametable'>
-        <div id='gameboard'></div>
+        
 
         <div id='buttons'>
             <button id="button-step" onclick="gb.update()">1 Step</button>
@@ -15,6 +15,7 @@
             <button id="button-stop" onclick='onStopClick()'>Stop</button>
             <label id='time-label'>Time: 0</label>
         </div>
+        <div id='gameboard'></div>
     </div>
 
 
@@ -105,9 +106,9 @@
             get envPolution() {
                 switch (this.env) {
                     case 'city':
-                        return 30;
+                        return 25;
                     case 'forest':
-                        return 0.5;
+                        return 0.1;
                     // case 'scorched':
                     //     return -5;
                     default:
@@ -187,7 +188,7 @@
                 else if (cpy.env == 'ground' && cpy.temp <= 45 && cpy.polution < 2)
                     cpy.env = 'forest'
                 else if (neighborhood.filter((elem) => {
-                    return (elem.env == 'forest' && elem.polution < 1 && cpy.temp < 42 )
+                    return (elem.env == 'forest' && elem.polution == 0 && elem.temp < 42)
                 }).length == 9) {
                     cpy.env = 'city'
                 }

@@ -1,9 +1,9 @@
 
 :root {
-    --tile-width: 100;
-    --tile-margin: 2;
+    --tile-width: 50px;
+    --tile-margin: 2px;
     --board-size: 51;
-    --board-width: 5304; /*  = (tileWidth+(tileMargin*2))*boardSize  */
+    --board-width: 2754px; /*  = (tileWidth+(tileMargin*2))*boardSize  */
 
     --default-color: lightgray;
     --glacier-color: lightblue;
@@ -17,6 +17,15 @@
 body{
     background-color: rgb(105, 82, 32);
     
+}
+
+label{
+    font-size: 9px;
+}
+
+#gametable{
+    display: inline-flex;
+    justify-content: center;
 }
 
 #gameboard {
@@ -37,7 +46,8 @@ body{
 }
 
 #time-label{
-    font-size: 5em;
+    font-size: 1vw;
+    margin: 1vw;
 }
 
 #buttons{
@@ -45,15 +55,22 @@ body{
     flex-wrap: wrap;
     flex-direction: column;
     right: 0;
+    top: 0;
     position: fixed;
+    background-color: rgb(105, 82, 32);
+    border-radius: 0 0 0 50px;
+    border: 3px rgb(207, 207, 207) ;
+    border-style: double;
+    border-top: none;
+    border-right: none;
 }
 
 button{
-    font-size: 5em;
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 1em;
+    font-size: 1vw;
+    color: rgb(207, 207, 207);
+    border: none ;
+    border-radius: 15px;
+    padding: 1vw;
     margin: 0.5em;
     
 }
